@@ -20,16 +20,7 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this._activatedUrl = "/home";
-        this._sideDrawerTransition = new SlideInOnTopTransition();
-
-        this.router.events
-        .pipe(filter((event: any) => event instanceof NavigationEnd))
-        .subscribe((event: NavigationEnd) => this._activatedUrl = event.urlAfterRedirects);
-
         firebase.init({
-            // Optionally pass in properties for database, authentication and cloud messaging,
-            // see their respective docs.
           }).then(
             instance => {
               console.log("firebase.init done");
@@ -38,6 +29,29 @@ export class AppComponent implements OnInit {
               console.log(`firebase.init error: ${error}`);
             }
           );
+
+        this._activatedUrl = "/home";
+        this._sideDrawerTransition = new SlideInOnTopTransition();
+
+        this.router.events
+        .pipe(filter((event: any) => event instanceof NavigationEnd))
+        .subscribe((event: NavigationEnd) => {
+            this._activatedUrl = event.urlAfterRedirects;
+            console.log("navigate");
+            firebase.analytics.logEvent({
+                key: "page_view",
+                parameters: [
+                    {
+                        key: "page_id",
+                        value: this._activatedUrl
+                    }
+                ]
+            });
+
+            firebase.analytics.setScreenName({
+                screenName: this._activatedUrl
+            });
+        });
     }
 
     get sideDrawerTransition(): DrawerTransitionBase {
